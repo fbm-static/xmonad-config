@@ -14,10 +14,12 @@ import XMonad.Layout.NoBorders
 import XMonad.Layout.Spiral
 import XMonad.Layout.Tabbed
 import XMonad.Layout.ThreeColumns
+import XMonad.Layout.PerWorkspace
 import XMonad.Util.Run(spawnPipe)
 import XMonad.Util.EZConfig(additionalKeys)
 import qualified XMonad.StackSet as W
 import qualified Data.Map        as M
+import Data.List
 
 
 ------------------------------------------------------------------------
@@ -25,14 +27,14 @@ import qualified Data.Map        as M
 -- The preferred terminal program, which is used in a binding below and by
 -- certain contrib modules.
 --
-myTerminal = "/usr/bin/gnome-terminal"
+myTerminal = "/usr/bin/xfce4-terminal"
 
 
 ------------------------------------------------------------------------
 -- Workspaces
 -- The default number of workspaces (virtual screens) and their names.
 --
-myWorkspaces = ["1:term","2:web","3:code","4:vm","5:media"] ++ map show [6..9]
+myWorkspaces = ["1:term","2:web","3:code","4:ncmpcpp"] ++ map show [5..9]
 
 
 ------------------------------------------------------------------------
@@ -50,18 +52,20 @@ myWorkspaces = ["1:term","2:web","3:code","4:vm","5:media"] ++ map show [6..9]
 -- 'className' and 'resource' are used below.
 --
 myManageHook = composeAll
-    [ className =? "Chromium"       --> doShift "2:web"
-    , className =? "Google-chrome"  --> doShift "2:web"
+    [ stringProperty "WM_WINDOW_ROLE" =? "browser"  --> doShift "2:web"
+    , className =? "Eclipse"        --> doShift "3:code"
+    , className =? "Sublime_text"   --> doShift "3:code"
     , resource  =? "desktop_window" --> doIgnore
     , className =? "Galculator"     --> doFloat
     , className =? "Steam"          --> doFloat
     , className =? "Gimp"           --> doFloat
     , resource  =? "gpicview"       --> doFloat
     , className =? "MPlayer"        --> doFloat
-    , className =? "VirtualBox"     --> doShift "4:vm"
-    , className =? "Xchat"          --> doShift "5:media"
     , className =? "stalonetray"    --> doIgnore
-    , isFullscreen --> (doF W.focusDown <+> doFullFloat)]
+    , isFullscreen --> (doF W.focusDown <+> doFullFloat)
+    , stringProperty "WM_NAME" =? "Eclipse" --> doFloat
+    , fmap("crx" `isPrefixOf`) className --> doFloat
+    ]
 
 
 ------------------------------------------------------------------------
@@ -74,12 +78,15 @@ myManageHook = composeAll
 -- The available layouts.  Note that each layout is separated by |||,
 -- which denotes layout choice.
 --
-myLayout = avoidStruts (
-    Tall 1 (3/100) (1/2) |||
-    Mirror (Tall 1 (3/100) (1/2)) |||
-    tabbed shrinkText tabConfig |||
-    Full |||
-    spiral (6/7)) |||
+myLayout =
+    onWorkspace "2:web" (avoidStruts (Full)) $
+    avoidStruts (
+        Tall 1 (3/100) (1/2) |||
+        --Mirror (Tall 1 (3/100) (1/2)) |||
+        --tabbed shrinkText tabConfig |||
+        Full
+        --spiral (6/7)
+    ) |||
     noBorders (fullscreenFull Full)
 
 
@@ -101,10 +108,10 @@ tabConfig = defaultTheme {
 }
 
 -- Color of current window title in xmobar.
-xmobarTitleColor = "#FFB6B0"
+xmobarTitleColor = "#D8D4D4"
 
 -- Color of current workspace in xmobar.
-xmobarCurrentWorkspaceColor = "#CEFFAC"
+xmobarCurrentWorkspaceColor = "#78add2"
 
 -- Width of the window border in pixels.
 myBorderWidth = 1
@@ -118,7 +125,7 @@ myBorderWidth = 1
 -- ("right alt"), which does not conflict with emacs keybindings. The
 -- "windows key" is usually mod4Mask.
 --
-myModMask = mod1Mask
+myModMask = mod4Mask
 
 myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
   ----------------------------------------------------------------------
@@ -131,7 +138,7 @@ myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
 
   -- Lock the screen using xscreensaver.
   , ((modMask .|. controlMask, xK_l),
-     spawn "xscreensaver-command -lock")
+     spawn "light-locker-command -l")
 
   -- Launch dmenu via yeganesh.
   -- Use this to launch programs without a key binding.
@@ -168,15 +175,15 @@ myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
 
   -- Audio previous.
   , ((0, 0x1008FF16),
-     spawn "")
+     spawn "mpc prev")
 
   -- Play/pause.
   , ((0, 0x1008FF14),
-     spawn "")
+     spawn "mpc toggle")
 
   -- Audio next.
   , ((0, 0x1008FF17),
-     spawn "")
+     spawn "mpc next")
 
   -- Eject CD tray.
   , ((0, 0x1008FF2C),
@@ -255,7 +262,7 @@ myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
 
   -- Quit xmonad.
   , ((modMask .|. shiftMask, xK_q),
-     io (exitWith ExitSuccess))
+     spawn "xfce4-session-logout" )
 
   -- Restart xmonad.
   , ((modMask, xK_q),
@@ -333,8 +340,9 @@ main = do
       logHook = dynamicLogWithPP $ xmobarPP {
             ppOutput = hPutStrLn xmproc
           , ppTitle = xmobarColor xmobarTitleColor "" . shorten 100
-          , ppCurrent = xmobarColor xmobarCurrentWorkspaceColor ""
-          , ppSep = "   "
+          , ppCurrent = wrap "<fc=#78add2><" "></fc>"
+          , ppHidden = const ""
+          , ppSep = "      "
       }
       , manageHook = manageDocks <+> myManageHook
       , startupHook = setWMName "LG3D"
@@ -368,3 +376,4 @@ defaults = defaultConfig {
     manageHook         = myManageHook,
     startupHook        = myStartupHook
 }
+
