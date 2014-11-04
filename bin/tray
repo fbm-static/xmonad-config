@@ -11,9 +11,9 @@ stalonetray --icon-size 16 \
   --slot-size 20 \
   --grow-gravity N \
 	--window-type normal \
-	--geometry 5x1-0 \
+	--geometry 5x1-1 \
 	--window-strut none \
-  --background '#1C1C1C' \
+  --background '#2B303B' \
 	--icon-gravity NW \
 	--kludges force_icons_size,use_icons_hints
   # --slot-size 25 \

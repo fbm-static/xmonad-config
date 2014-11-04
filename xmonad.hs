@@ -27,14 +27,14 @@ import Data.List
 -- The preferred terminal program, which is used in a binding below and by
 -- certain contrib modules.
 --
-myTerminal = "/usr/bin/xfce4-terminal"
+myTerminal = "/usr/bin/urxvtc"
 
 
 ------------------------------------------------------------------------
 -- Workspaces
 -- The default number of workspaces (virtual screens) and their names.
 --
-myWorkspaces = ["1:term","2:web","3:code","4:ncmpcpp"] ++ map show [5..9]
+myWorkspaces = ["1:term","2:web","3:code","4:misc"] ++ map show [5..9]
 
 
 ------------------------------------------------------------------------
@@ -55,6 +55,11 @@ myManageHook = composeAll
     [ stringProperty "WM_WINDOW_ROLE" =? "browser"  --> doShift "2:web"
     , className =? "Eclipse"        --> doShift "3:code"
     , className =? "Sublime_text"   --> doShift "3:code"
+    , className =? "Subl3"          --> doShift "3:code"
+    , stringProperty "WM_COMMAND" =? "ncmpcpp" --> doShift "4:misc"
+    , className =? "ncmpcpp"        --> doShift "4:misc"
+    , appName =? "ncmpcpp"          --> doShift "4:misc"
+    , className =? "Xchat"          --> doShift "4:misc"
     , resource  =? "desktop_window" --> doIgnore
     , className =? "Galculator"     --> doFloat
     , className =? "Steam"          --> doFloat
@@ -166,12 +171,12 @@ myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
      spawn "amixer -q set Master toggle")
 
   -- Decrease volume.
-  , ((modMask .|. controlMask, xK_j),
-     spawn "amixer -q set Master 10%-")
+  -- , ((0,0x1008ff11),
+  -- spawn "amixer -q set Master 10%-")
 
   -- Increase volume.
-  , ((modMask .|. controlMask, xK_k),
-     spawn "amixer -q set Master 10%+")
+  -- , (("<XF86AudioRaiseVolume>"),
+  -- spawn "amixer -q set Master 10%+")
 
   -- Audio previous.
   , ((0, 0x1008FF16),
@@ -262,7 +267,7 @@ myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
 
   -- Quit xmonad.
   , ((modMask .|. shiftMask, xK_q),
-     spawn "xfce4-session-logout" )
+     io (exitWith ExitSuccess))
 
   -- Restart xmonad.
   , ((modMask, xK_q),
@@ -329,7 +334,6 @@ myMouseBindings (XConfig {XMonad.modMask = modMask}) = M.fromList $
 --
 -- By default, do nothing.
 myStartupHook = return ()
-
 
 ------------------------------------------------------------------------
 -- Run xmonad with all the defaults we set up.

@@ -6,9 +6,33 @@
 
 # Configure PATH so that we can access our scripts below
 export PATH=$PATH:~/.cabal/bin:~/.xmonad/bin
+export EDITOR=vim
 
-ep# Start the system tray
+xrdb -merge ~/.Xresources &
+
+xsetroot -cursor_name left_ptr &
+
+# Start the system tray
 tray &
 
+urxvtd &
 
-exec ck-launch-session dbus-launch --sh-syntax --exit-with-session xmonad
+mpd --no-daemon &
+
+mpdscribble &
+
+xfce4-power-manager &
+
+volumeicon &
+
+xbindkeys &
+
+udiskie --tray &
+
+{ sleep 4 && urxvtc -name ncmpcpp -e ncmpcpp; } &
+
+{ sleep 4 && urxvtc; } &
+
+{ sleep 4 && xchat; } &
+
+exec xmonad
